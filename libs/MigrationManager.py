@@ -100,8 +100,10 @@ class MigrationManager:
 				padding = 1.1
 				capacities = np.array([float(x.get_cores()) for x in self.pms])
 				capacity_sum = np.sum(capacities)
-				rescaling = np.divide(capacities, capacity_sum) # np.ones(self.num_pms) # 
-				self.utilization_set_points = np.sum(self.physical_load_vector) * padding * rescaling # np.average #
+				rescaling = np.divide(capacities, capacity_sum) 
+				self.utilization_set_points = np.sum(self.physical_load_vector) * padding * rescaling
+				self.utilization_set_points = np.minimum(self.utilization_set_points, np.array([x.get_cores() for x in self.pms]))
+				self.utilization_set_points = np.maximum(self.utilization_set_points, np.ones(self.num_pms))
 
 	def log(self):
 		self.PMloads.info('%s', ', '.join(map(str, list(self.physical_load_vector))))
