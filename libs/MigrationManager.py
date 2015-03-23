@@ -82,13 +82,16 @@ class MigrationManager:
 		self.window_overload_index = np.sum(self.window_overload_matrix, axis=1)
 		
 		# select migration strategy
-		# "random load_aware migration_likelihood sandpiper"
 		if self.strategy == 'random':
 			self.decide_migration_random()
 		elif self.strategy == 'load_aware':
 			self.decide_migration_loadaware()
+		elif self.strategy == 'load_aware_woi':
+			self.decide_migration_loadaware_woi()
 		elif self.strategy == 'migration_likelihood':
 			self.decide_migration_migrationlikelihood()
+		elif self.strategy == 'migration_likelihood_woi':
+			self.decide_migration_migrationlikelihood_woi()
 		elif self.strategy == 'sandpiper':
 			self.decide_migration_sandpiper()
 
@@ -227,6 +230,36 @@ class MigrationManager:
 				self.migrate(vm_migrate, pm_source, pm_destination)
 				self.integrated_overload_index[0,pm_source] = 0
 
+	def decide_migration_loadaware_woi(self):
+		migrate_me_maybe = (self.window_overload_index > self.relocation_thresholds)[0]
+		if np.sum(migrate_me_maybe) > 0:
+			indexes = np.array(np.where(migrate_me_maybe)).tolist()[0] # potential migration sources
+			pm_source = random.choice(indexes)
+			set_of_vms = (self.location[:, pm_source] == 1).transpose()
+			vm_set_migration = np.array(np.where(set_of_vms)).tolist()[0]
+
+			volumes = np.array([x.get_volume() for x in self.pms])
+			available_volume_per_pm = volumes - self.physical_volume_vector
+			aware_matrix = np.zeros((self.num_vms, self.num_pms))
+			for col in range(0,self.num_pms):
+				aware_matrix[:, col] = available_volume_per_pm[col]
+			for row in range(0,self.num_vms):
+				if row in vm_set_migration:
+					vol_to_remove = self.volumes[row]
+				else:
+					vol_to_remove = np.inf
+				aware_matrix[row, :] = aware_matrix[row, :] - vol_to_remove
+			aware_matrix[:, pm_source] = np.nan
+			aware_matrix[aware_matrix<0] = np.nan
+
+			if not np.isnan(aware_matrix).all():
+				argmaxidx = np.nanargmax(aware_matrix)
+				coordinates = np.unravel_index(argmaxidx, (self.num_vms, self.num_pms))
+				vm_migrate = coordinates[0]
+				pm_destination = coordinates[1]
+				self.migrate(vm_migrate, pm_source, pm_destination)
+				self.integrated_overload_index[0,pm_source] = 0
+
 	def decide_migration_migrationlikelihood(self):
 		migrate_me_maybe = (self.integrated_overload_index > self.relocation_thresholds)[0]
 		if np.sum(migrate_me_maybe) > 0:
@@ -245,6 +278,32 @@ class MigrationManager:
 			available_capacity = [available_volume_per_pm[x.get_pm()] for x in self.vms]
 			plan_coefficients = np.array([x.plan.get_coefficient() for x in self.vms])
 			minimize_me = -1.0/plan_coefficients * (vm_volumes + available_capacity) + plan_coefficients * 10*vm_migrations
+			vm_migrate = np.nanargmin(minimize_me)
+			pm_source = self.vms[vm_migrate].get_pm()
+			# avoiding to select the source machine as destination by using nan
+			available_volume_per_pm[pm_source] = np.nan
+			pm_destination = np.nanargmax(available_volume_per_pm)
+			self.migrate(vm_migrate, pm_source, pm_destination)
+			self.integrated_overload_index[0,pm_source] = 0
+
+	def decide_migration_migrationlikelihood_woi(self):
+		migrate_me_maybe = (self.window_overload_index > self.relocation_thresholds)[0]
+		if np.sum(migrate_me_maybe) > 0:
+			indexes = np.array(np.where(migrate_me_maybe)).tolist()[0] # potential migration sources
+			set_of_vms = list()
+			for i in indexes:
+				partial = (self.location[:, i] == 1).transpose()
+				newly_found = np.array(np.where(partial)).tolist()
+				set_of_vms += newly_found[0]
+			set_of_vms = sorted(set_of_vms)
+			pms = [x.get_pm() for x in self.vms]
+			pm_volumes = np.array([x.get_volume() for x in self.pms])
+			vm_volumes = np.array([x.get_volume_actual() for x in self.vms])
+			vm_migrations = np.array([x.get_migrations() for x in self.vms])
+			available_volume_per_pm = pm_volumes - self.physical_volume_vector
+			available_capacity = [available_volume_per_pm[x.get_pm()] for x in self.vms]
+			plan_coefficients = np.array([x.plan.get_coefficient() for x in self.vms])
+			minimize_me = -1.0/plan_coefficients * (vm_volumes + available_capacity) + plan_coefficients * vm_migrations
 			vm_migrate = np.nanargmin(minimize_me)
 			pm_source = self.vms[vm_migrate].get_pm()
 			# avoiding to select the source machine as destination by using nan
