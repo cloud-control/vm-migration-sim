@@ -246,14 +246,12 @@ class MigrationManager:
 			available_volume_per_pm = pm_volumes - self.physical_volume_vector
 			available_capacity = [available_volume_per_pm[x.get_pm()] for x in self.vms]
 			plan_coefficients = np.array([x.plan.get_coefficient() for x in self.vms])
-			minimize_me = -1.0/plan_coefficients * (vm_volumes + available_capacity) + plan_coefficients * vm_migrations
+			minimize_me = -1.0/plan_coefficients * (vm_volumes + available_capacity) + plan_coefficients * 10*vm_migrations
 			vm_migrate = np.nanargmin(minimize_me)
 			pm_source = self.vms[vm_migrate].get_pm()
 			# avoiding to select the source machine as destination by using nan
-			saving_load_pm_source = self.physical_load_vector[pm_source]
-			self.physical_load_vector[pm_source] = np.nan
+			available_volume_per_pm[pm_source] = np.nan
 			pm_destination = np.nanargmax(available_volume_per_pm)
-			self.physical_load_vector[pm_source] = saving_load_pm_source
 			self.migrate(vm_migrate, pm_source, pm_destination)
 			self.integrated_overload_index[0,pm_source] = 0
 
