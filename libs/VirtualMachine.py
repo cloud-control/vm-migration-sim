@@ -34,7 +34,7 @@ class VirtualMachine:
 
 	def execute(self):
 		#self.load_actual = random.uniform(0.5*self.load_nominal, self.load_nominal)
-		self.load_actual = random.gauss(0.75*self.load_nominal, math.sqrt(0.25))
+		self.load_actual = max(random.gauss(0.75*self.load_nominal, math.sqrt(0.25)),1e-2)
 		self.memory_actual = self.memory_nominal
 		self.volume_actual = self.load_actual * self.memory_actual
 

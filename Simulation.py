@@ -50,14 +50,14 @@ def main():
 	pm2 = pm.PhysicalMachine(8)
 	physical_machines = [pm0, pm1, pm2]
 
-	vm0 = vm.VirtualMachine(physical_machines[0],'gold', 2) # plan and nominal load
+	vm0 = vm.VirtualMachine(physical_machines[0],'gold', 4) # plan and nominal load
 	vm1 = vm.VirtualMachine(physical_machines[0],'gold', 2)
-	vm2 = vm.VirtualMachine(physical_machines[0],'silver', 2)
-	vm3 = vm.VirtualMachine(physical_machines[0],'silver', 4)
-	vm4 = vm.VirtualMachine(physical_machines[0],'silver', 4)
-	vm5 = vm.VirtualMachine(physical_machines[0],'basic', 4)
-	vm6 = vm.VirtualMachine(physical_machines[0],'basic', 4)
-	vm7 = vm.VirtualMachine(physical_machines[0],'basic', 4)
+	vm2 = vm.VirtualMachine(physical_machines[0],'silver', 4)
+	vm3 = vm.VirtualMachine(physical_machines[0],'silver', 3)
+	vm4 = vm.VirtualMachine(physical_machines[0],'silver', 2)
+	vm5 = vm.VirtualMachine(physical_machines[0],'basic', 6)
+	vm6 = vm.VirtualMachine(physical_machines[0],'basic', 2)
+	vm7 = vm.VirtualMachine(physical_machines[0],'basic', 2)
 	virtual_machines = [vm0, vm1, vm2, vm3, vm4, vm5, vm6, vm7]
 	# ---------------------------------------------------------------------------
 
