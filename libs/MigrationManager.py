@@ -89,6 +89,8 @@ class MigrationManager:
 			self.decide_migration_loadaware()
 		elif self.strategy == 'migration_likelihood':
 			self.decide_migration_migrationlikelihood()
+		elif self.strategy == 'migration_likelihood_woi':
+			self.decide_migration_migrationlikelihood_woi()
 		elif self.strategy == 'sandpiper':
 			self.decide_migration_sandpiper()
 
@@ -229,6 +231,34 @@ class MigrationManager:
 
 	def decide_migration_migrationlikelihood(self):
 		migrate_me_maybe = (self.integrated_overload_index > self.relocation_thresholds)[0]
+		if np.sum(migrate_me_maybe) > 0:
+			indexes = np.array(np.where(migrate_me_maybe)).tolist()[0] # potential migration sources
+			set_of_vms = list()
+			for i in indexes:
+				partial = (self.location[:, i] == 1).transpose()
+				newly_found = np.array(np.where(partial)).tolist()
+				set_of_vms += newly_found[0]
+			set_of_vms = sorted(set_of_vms)
+			pms = [x.get_pm() for x in self.vms]
+			pm_volumes = np.array([x.get_volume() for x in self.pms])
+			vm_volumes = np.array([x.get_volume_actual() for x in self.vms])
+			vm_migrations = np.array([x.get_migrations() for x in self.vms])
+			available_volume_per_pm = pm_volumes - self.physical_volume_vector
+			available_capacity = [available_volume_per_pm[x.get_pm()] for x in self.vms]
+			plan_coefficients = np.array([x.plan.get_coefficient() for x in self.vms])
+			minimize_me = -1.0/plan_coefficients * (vm_volumes + available_capacity) + plan_coefficients * vm_migrations
+			vm_migrate = np.nanargmin(minimize_me)
+			pm_source = self.vms[vm_migrate].get_pm()
+			# avoiding to select the source machine as destination by using nan
+			saving_load_pm_source = self.physical_load_vector[pm_source]
+			self.physical_load_vector[pm_source] = np.nan
+			pm_destination = np.nanargmax(available_volume_per_pm)
+			self.physical_load_vector[pm_source] = saving_load_pm_source
+			self.migrate(vm_migrate, pm_source, pm_destination)
+			self.integrated_overload_index[0,pm_source] = 0
+
+	def decide_migration_migrationlikelihood_woi(self):
+		migrate_me_maybe = (self.window_overload_index > self.relocation_thresholds)[0]
 		if np.sum(migrate_me_maybe) > 0:
 			indexes = np.array(np.where(migrate_me_maybe)).tolist()[0] # potential migration sources
 			set_of_vms = list()
