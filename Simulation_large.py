@@ -1,6 +1,7 @@
 import argparse
 import os
 import errno
+import random
 
 import libs.VirtualMachine as vm
 import libs.PhysicalMachine as pm
