@@ -53,13 +53,13 @@ def main():
 
 	virtual_machines = list()
 	for i in range(0,30):
-		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'gold', 2))
+		virtual_machines.append(vm.VirtualMachine(physical_machines[random.choice(range(0,npm))],'gold', 2))
 	for i in range(0,70):
-		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'silver', 1))
+		virtual_machines.append(vm.VirtualMachine(physical_machines[random.choice(range(0,npm))],'silver', 1))
 	for i in range(0,100):
-		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'bronze', 6))
+		virtual_machines.append(vm.VirtualMachine(physical_machines[random.choice(range(0,npm))],'bronze', 6))
 	for i in range(0,200):
-		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'basic', 8))
+		virtual_machines.append(vm.VirtualMachine(physical_machines[random.choice(range(0,npm))],'basic', 8))
 	# ---------------------------------------------------------------------------
 
 	migration_manager = mm.MigrationManager(args.outdir, args.strategy, physical_machines, \
