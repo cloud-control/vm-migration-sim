@@ -46,18 +46,19 @@ def main():
 	# ---------------------------------------------------------------------------
 	# simulation: defining data center
 	physical_machines = list()
-	for i in range(0,250):
+	npm = 150
+	for i in range(0,npm):
 		physical_machines.append(pm.PhysicalMachine(16))
 
 	virtual_machines = list()
 	for i in range(0,30):
-		virtual_machines.append(vm.VirtualMachine(physical_machines[0],'gold', 4))
+		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'gold', 2))
 	for i in range(0,70):
-		virtual_machines.append(vm.VirtualMachine(physical_machines[0],'silver', 4))
+		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'silver', 1))
 	for i in range(0,100):
-		virtual_machines.append(vm.VirtualMachine(physical_machines[0],'bronze', 4))
-	for i in range(0,800):
-		virtual_machines.append(vm.VirtualMachine(physical_machines[0],'basic', 4))
+		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'bronze', 6))
+	for i in range(0,200):
+		virtual_machines.append(vm.VirtualMachine(random.choice(range(0,npm)),'basic', 8))
 	# ---------------------------------------------------------------------------
 
 	migration_manager = mm.MigrationManager(args.outdir, args.strategy, physical_machines, \
