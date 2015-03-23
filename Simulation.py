@@ -20,7 +20,7 @@ def main():
 		description='VM migration simulator', \
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-	migrationAlgorithms = ("random load_aware migration_likelihood migration_likelihood_woi sandpiper").split()
+	migrationAlgorithms = ("random load_aware load_aware_woi migration_likelihood migration_likelihood_woi sandpiper").split()
 	parser.add_argument('--strategy',
 		help = 'Migration algorithms: ' + ' '.join(migrationAlgorithms),
 		default = migrationAlgorithms[0])
